@@ -1,7 +1,8 @@
 import streamlit as st
 import matplotlib.pyplot as plt
 from sklearn.metrics import ConfusionMatrixDisplay
-from vnstock import VnStock, get_list_industries, get_list_symbols_by_industry
+from vnstock import VnStock
+from function import get_list_symbols_by_industry, get_list_industries
 import io
 
 # Tiêu đề ứng dụng

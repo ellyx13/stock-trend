@@ -5,7 +5,7 @@ from sklearn.model_selection import train_test_split, GridSearchCV, cross_val_sc
 from sklearn.tree import DecisionTreeClassifier, plot_tree
 from sklearn.metrics import accuracy_score, confusion_matrix, ConfusionMatrixDisplay
 import pandas as pd
-import streamlit as st
+
 
 class VnStock:
     def __init__(self):
@@ -118,7 +118,7 @@ class VnStock:
         df.to_excel(file_path, index=False)
         print(f"Data exported to {filename}")
 
-    def analyze(self, symbol, source, start_date, end_date):
+    def analyze(self, symbol, source, start_date, end_date, show=True):
         """Complete analysis pipeline."""
         print("Fetching stock data...")
         df = self.fetch_stock_data(symbol, source, start_date, end_date)
@@ -136,27 +136,10 @@ class VnStock:
         accuracy, cm = self.evaluate_model(x_test, y_test)
         print(f"Model Accuracy: {accuracy:.2f}")
         ConfusionMatrixDisplay(confusion_matrix=cm).plot()
-        plt.show()
-        print("Visualizing Decision Tree...")
-        self.visualize_tree()
-        print("Plotting Feature Importance...")
-        self.plot_feature_importance()
+        if show: 
+            plt.show()
+            print("Visualizing Decision Tree...")
+            self.visualize_tree()
+            print("Plotting Feature Importance...")
+            self.plot_feature_importance()
         return df, accuracy, cm
-
-
-vn_stock = Vnstock()
-
-@st.cache_data
-def get_list_industries():
-    industries = vn_stock.stock().listing.symbols_by_industries()["icb_name2"].unique().tolist()
-    industries.insert(0, "Tất cả")
-    return industries
-
-@st.cache_data
-def get_list_symbols_by_industry(industry):
-    df = vn_stock.stock().listing.symbols_by_industries()
-    if industry == "Tất cả":
-        filtered_df = df
-    else:
-        filtered_df = df[df["icb_name2"] == industry]
-    return (filtered_df["symbol"] + " - " + filtered_df["organ_name"]).tolist()
