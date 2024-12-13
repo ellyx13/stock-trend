@@ -1,7 +1,7 @@
 import streamlit as st
 import matplotlib.pyplot as plt
-from sklearn.metrics import accuracy_score, confusion_matrix, ConfusionMatrixDisplay
-from main import VnStock, get_list_industries, get_list_symbols_by_industry
+from sklearn.metrics import ConfusionMatrixDisplay
+from vnstock import VnStock, get_list_industries, get_list_symbols_by_industry
 import io
 
 # Tiêu đề ứng dụng
@@ -31,7 +31,7 @@ data_source = st.selectbox(
 
 # Thông báo khi sẵn sàng xử lý
 if st.button("Submit"):
-    st.write(f"### Analyzing {selected_stock} from {start_date} to {end_date}...")
+    st.write(f"## Analyzing {selected_stock} from {start_date} to {end_date}...")
     
     try:
         # Khởi tạo đối tượng phân tích
@@ -47,38 +47,38 @@ if st.button("Submit"):
 
         # Hiển thị kết quả đánh giá
         st.subheader("Model Evaluation")
-        st.markdown(f"<h3>Model Accuracy: <b style='color:green;'>{accuracy * 100:.2f}%</b></h3>", unsafe_allow_html=True)
+        st.markdown(f"<h4>Model Accuracy: <b style='color:green;'>{accuracy * 100:.2f}%</b></h4>", unsafe_allow_html=True)
         
-        st.write("**Confusion Matrix:**")
+        st.subheader("Confusion Matrix (Ma Trận Nhầm Lẫn)", divider="gray")
         fig, ax = plt.subplots()
         ConfusionMatrixDisplay(confusion_matrix=cm).plot(ax=ax)
         st.pyplot(fig)
         
         # Thêm mô tả cho ma trận nhầm lẫn
         st.markdown("""
-        ### Mô tả Ma Trận Confusion (Nhầm Lẫn):
+        ### Mô tả Ma Trận Confusion:
         - **True Negative (TN, 0-0):** Số lần mô hình dự đoán đúng xu hướng giảm.
         - **False Positive (FP, 0-1):** Số lần mô hình dự đoán sai xu hướng tăng trong khi thực tế là giảm.
-        - **False Negative (FN), 1-0:** Số lần mô hình dự đoán sai xu hướng giảm trong khi thực tế là tăng.
+        - **False Negative (FN, 1-0):** Số lần mô hình dự đoán sai xu hướng giảm trong khi thực tế là tăng.
         - **True Positive (TP, 1-1):** Số lần mô hình dự đoán đúng xu hướng tăng.
         
         **Ý nghĩa**: Ma trận nhầm lẫn giúp đánh giá chi tiết hiệu suất của mô hình, đặc biệt là khả năng phân loại đúng các trường hợp tăng/giảm giá cổ phiếu.
         """)
 
         # Hiển thị biểu đồ cây quyết định
-        st.subheader("Decision Tree Visualization")
+        st.subheader("Decision Tree Visualization", divider="gray")
         fig = vn_stock.visualize_tree()
         st.pyplot(fig)
         
         # Mô tả cây quyết định
-        st.subheader("Mô tả Cây Quyết Định và Các Feature")
+        st.markdown("### Mô tả Cây Quyết Định và Các Feature")
         st.markdown("""
-        ### Cây Quyết Định:
+        #### Cây Quyết Định:
         - Cây quyết định được sử dụng để dự đoán xu hướng giá cổ phiếu (Tăng hoặc Giảm).
         - Mỗi nút trong cây đại diện cho một điều kiện kiểm tra dựa trên các đặc trưng (features).
         - Nút lá chứa nhãn dự đoán cuối cùng (Tăng hoặc Giảm).
 
-        ### Các Feature Được Sử Dụng:
+        #### Các Feature Được Sử Dụng:
         1. **open, high, low, close**: Dữ liệu giá cổ phiếu trong phiên giao dịch.
         2. **volume**: Khối lượng giao dịch, phản ánh sự quan tâm của thị trường.
         3. **MA_5, MA_20, MA_50**: Đường trung bình động, biểu thị xu hướng ngắn hạn và dài hạn.
@@ -86,13 +86,13 @@ if st.button("Submit"):
         5. **bollinger_high, bollinger_low**: Biên trên và dưới của dải Bollinger, xác định ngưỡng hỗ trợ/kháng cự.
         6. **MACD, MACD_signal**: Chỉ báo động lượng và tín hiệu giao dịch.
 
-        ### Ý Nghĩa:
+        #### Ý Nghĩa:
         - Feature quan trọng nhất sẽ xuất hiện ở nút gốc và được sử dụng để phân chia dữ liệu.
         """)
 
 
         # Hiển thị biểu đồ độ quan trọng của đặc trưng
-        st.subheader("Feature Importance")
+        st.subheader("Feature Importance", divider="gray")
         fig, ax = plt.subplots()
         vn_stock.plot_feature_importance()
         st.pyplot(fig)
@@ -102,7 +102,7 @@ if st.button("Submit"):
         - **Feature Importance** là một chỉ số cho biết mức độ quan trọng của từng đặc trưng (feature) trong việc đưa ra quyết định của mô hình.
         - Các giá trị cao hơn nghĩa là đặc trưng đó có ảnh hưởng lớn hơn đến kết quả dự đoán.
 
-        #### **Ý nghĩa của từng đặc trưng**:
+        #### Ý nghĩa của từng đặc trưng:
         - **Open, High, Low, Close**: Giá mở cửa, cao nhất, thấp nhất và đóng cửa của cổ phiếu trong phiên giao dịch.
         - **Volume**: Khối lượng giao dịch, biểu thị mức độ quan tâm của thị trường với cổ phiếu.
         - **MA (Moving Average)**: Đường trung bình động (5, 20, 50 ngày) biểu diễn xu hướng giá ngắn hạn và dài hạn.
@@ -110,7 +110,7 @@ if st.button("Submit"):
         - **Bollinger High / Low**: Biên trên và dưới của dải Bollinger, đo độ biến động giá.
         - **MACD, MACD Signal**: Chỉ báo động lượng và tín hiệu xu hướng giá.
 
-        #### **Sử dụng Feature Importance**:
+        #### Sử dụng Feature Importance:
         - Đặc trưng có giá trị **Feature Importance** cao nhất là yếu tố chính ảnh hưởng đến dự đoán của mô hình.
         - Những đặc trưng quan trọng thấp có thể được loại bỏ để giảm độ phức tạp mà không ảnh hưởng đến hiệu suất.
         """)
