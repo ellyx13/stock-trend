@@ -99,6 +99,11 @@ http://localhost:8501
 - **Feature Importance**
 ![Feature Importance](images/feature_importance.png)
 
+
+## References
+1. [Mô hình cây quyết định (decision tree)](https://phamdinhkhanh.github.io/deepai-book/ch_ml/DecisionTree.html)
+2. [Predicting the Market: A Deep Dive into Stock Forecasting with Decision Trees](https://thepythonlab.medium.com/predicting-the-market-a-deep-dive-into-stock-forecasting-with-decision-trees-4c105154c932)
+
 ## License
 This project is licensed under the MIT License.
 
