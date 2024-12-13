@@ -7,3 +7,5 @@ matplotlib
 seaborn
 ta
 streamlit
+prophet
+plotly

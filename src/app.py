@@ -64,6 +64,17 @@ if st.button("Submit"):
         
         **Ý nghĩa**: Ma trận nhầm lẫn giúp đánh giá chi tiết hiệu suất của mô hình, đặc biệt là khả năng phân loại đúng các trường hợp tăng/giảm giá cổ phiếu.
         """)
+        
+        precision = vn_stock.calculate_precision()
+        recall = vn_stock.calculate_recall()
+        f1_score = vn_stock.calculate_f1_score()
+        
+        st.markdown(f"""
+            ### Performance Metrics:
+            - **Precision:** {precision * 100:.2f}%
+            - **Recall:** {recall * 100:.2f}%
+            - **F1-Score:** {f1_score * 100:.2f}%
+            """)
 
         # Hiển thị biểu đồ cây quyết định
         st.subheader("Decision Tree Visualization", divider="gray")
@@ -114,6 +125,15 @@ if st.button("Submit"):
         - Đặc trưng có giá trị **Feature Importance** cao nhất là yếu tố chính ảnh hưởng đến dự đoán của mô hình.
         - Những đặc trưng quan trọng thấp có thể được loại bỏ để giảm độ phức tạp mà không ảnh hưởng đến hiệu suất.
         """)
+        
+        forecase_tomorrow = vn_stock.forecast_tomorrow()
+        if forecase_tomorrow == 1:
+            st.subheader("Dự đoán giá cổ phiếu ngày mai: **Tăng**")
+        else:
+            st.subheader("Dự đoán giá cổ phiếu ngày mai: **Giảm**")
+            
+        fig = vn_stock.plot_prophet_forecast_with_plotly()
+        st.plotly_chart(fig, use_container_width=True)
 
         # Hiển thị dữ liệu đã xử lý
         st.subheader("Processed Data")

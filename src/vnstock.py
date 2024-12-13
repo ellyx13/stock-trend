@@ -3,9 +3,12 @@ import ta
 from vnstock3 import Vnstock
 from sklearn.model_selection import train_test_split, GridSearchCV, cross_val_score
 from sklearn.tree import DecisionTreeClassifier, plot_tree
-from sklearn.metrics import accuracy_score, confusion_matrix, ConfusionMatrixDisplay
+from sklearn.metrics import accuracy_score, confusion_matrix, ConfusionMatrixDisplay, precision_score, recall_score, f1_score
 import pandas as pd
 import streamlit as st
+from prophet.plot import plot_plotly
+from prophet import Prophet
+import plotly.graph_objects as go
 
 class VnStock:
     def __init__(self):
@@ -72,10 +75,11 @@ class VnStock:
     def build_model(self, x_train, y_train):
         """Build and tune a Decision Tree model."""
         param_grid = {
-            'max_depth': [3, 5, 10],
-            'min_samples_split': [2, 5, 10],
-            'min_samples_leaf': [1, 2, 5],
-            'criterion': ['gini', 'entropy']
+            'max_depth': [3, 5, 10, 15, None],  # Thêm giá trị None để kiểm tra cây không giới hạn độ sâu
+            'min_samples_split': [2, 5, 10],  # Số lượng mẫu tối thiểu để chia một nút
+            'min_samples_leaf': [1, 2, 5],  # Số lượng mẫu tối thiểu để ở lại một lá
+            'criterion': ['gini', 'entropy'],  # Tiêu chí để đo độ tinh khiết của nút
+            'splitter': ['best', 'random']  # Kiểm tra cả cách chia tốt nhất và chia ngẫu nhiên
         }
         grid_search = GridSearchCV(DecisionTreeClassifier(random_state=42), param_grid, cv=5)
         grid_search.fit(x_train, y_train)
@@ -87,9 +91,9 @@ class VnStock:
         """Evaluate model performance."""
         if not self.model:
             raise RuntimeError("Model has not been built yet.")
-        y_pred = self.model.predict(x_test)
-        accuracy = accuracy_score(y_test, y_pred)
-        cm = confusion_matrix(y_test, y_pred)
+        self.y_pred = self.model.predict(x_test)
+        accuracy = accuracy_score(y_test, self.y_pred)
+        cm = confusion_matrix(y_test, self.y_pred)
         return accuracy, cm
 
 
@@ -117,6 +121,15 @@ class VnStock:
         file_path = "data/" + filename
         df.to_excel(file_path, index=False)
         print(f"Data exported to {filename}")
+        
+    def calculate_precision(self):
+        return precision_score(self.y_test, self.y_pred)
+
+    def calculate_recall(self):
+        return recall_score(self.y_test, self.y_pred)
+    
+    def calculate_f1_score(self):
+        return f1_score(self.y_test, self.y_pred)
 
     def analyze(self, symbol, source, start_date, end_date):
         """Complete analysis pipeline."""
@@ -125,15 +138,15 @@ class VnStock:
         print("Calculating technical indicators...")
         df = self.calculate_technical_indicators(df)
         print("Labeling trends...")
-        df = self.label_trends(df)
-        df.reset_index(drop=True, inplace=True)  # Reset chỉ số
+        self.df = self.label_trends(df)
+        self.df.reset_index(drop=True, inplace=True)  # Reset chỉ số
         print("Preparing features...")
         x, y = self.prepare_features(df)
-        x_train, x_test, y_train, y_test = self.split_data(x, y)
+        self.x_train, self.x_test, self.y_train, self.y_test = self.split_data(x, y)
         print("Building model...")
-        self.build_model(x_train, y_train)
+        self.build_model(self.x_train, self.y_train)
         print("Evaluating model...")
-        accuracy, cm = self.evaluate_model(x_test, y_test)
+        accuracy, cm = self.evaluate_model(self.x_test, self.y_test)
         print(f"Model Accuracy: {accuracy:.2f}")
         ConfusionMatrixDisplay(confusion_matrix=cm).plot()
         plt.show()
@@ -141,7 +154,72 @@ class VnStock:
         self.visualize_tree()
         print("Plotting Feature Importance...")
         self.plot_feature_importance()
-        return df, accuracy, cm
+        return self.df, accuracy, cm
+    
+    def forecast_tomorrow(self):
+        future_data = self.df.iloc[-1:]  # Lấy dữ liệu của ngày gần nhất
+        future_prediction = self.model.predict(future_data[self.features])
+        if future_prediction[0] == 1:
+            return True # Tăng
+        return False # Giảm
+    
+    def _prepare_data_to_forecast(self):
+        # Đổi tên cột 'time' thành 'ds' và 'close' thành 'y' theo yêu cầu của Prophet
+        df = self.df.rename(columns={'time': 'ds', 'close': 'y'})
+        df['ds'] = pd.to_datetime(df['ds'])  # Chuyển cột 'ds' thành định dạng datetime
+        df['y'] = df['y'].astype(float)     # Đảm bảo cột 'y' là kiểu số thực
+        return df[['ds', 'y']]  # Chỉ giữ lại hai cột cần thiết cho Prophet
+
+
+    def plot_prophet_forecast_with_plotly(self):
+        df = self._prepare_data_to_forecast()
+        # Huấn luyện mô hình Prophet
+        model = Prophet()
+        model.fit(df)
+
+        # Tạo dự báo cho 365 ngày tiếp theo
+        future = model.make_future_dataframe(periods=365)
+        forecast = model.predict(future)
+
+        # Tạo biểu đồ Plotly
+        fig = go.Figure()
+
+        # Dữ liệu gốc
+        fig.add_trace(go.Scatter(x=df['ds'], y=df['y'], mode='markers', name='Dữ liệu gốc'))
+
+        # Dự báo
+        fig.add_trace(go.Scatter(x=forecast['ds'], y=forecast['yhat'], mode='lines', name='Dự báo'))
+
+        # Vùng tin cậy
+        fig.add_trace(go.Scatter(
+            x=forecast['ds'],
+            y=forecast['yhat_upper'],
+            mode='lines',
+            name='Vùng tin cậy trên',
+            line=dict(width=0),
+            showlegend=False
+        ))
+        fig.add_trace(go.Scatter(
+            x=forecast['ds'],
+            y=forecast['yhat_lower'],
+            mode='lines',
+            name='Vùng tin cậy dưới',
+            line=dict(width=0),
+            fill='tonexty',
+            fillcolor='rgba(0,100,200,0.2)',  # Màu vùng tin cậy
+            showlegend=True
+        ))
+
+        # Tùy chỉnh biểu đồ
+        fig.update_layout(
+            title="Dự báo giá cổ phiếu",
+            xaxis_title="Thời gian",
+            yaxis_title="Giá trị (Close)",
+            template="plotly_dark"
+        )
+
+        return fig
+
 
 
 vn_stock = Vnstock()
