@@ -47,10 +47,10 @@ def prepare_features(df):
     y = df['trend']
     return X, y, features
 
-def split_data(X, y):
-    return train_test_split(X, y, test_size=0.2, random_state=42)
+def split_data(x, y):
+    return train_test_split(x, y, test_size=0.2, random_state=42)
 
-def build_model(X_train, y_train):
+def build_model(x_train, y_train):
     param_grid = {
         'max_depth': [3, 5, 10],
         'min_samples_split': [2, 5, 10],
@@ -58,13 +58,13 @@ def build_model(X_train, y_train):
         'criterion': ['gini', 'entropy']
     }
     grid_search = GridSearchCV(DecisionTreeClassifier(random_state=42), param_grid, cv=5)
-    grid_search.fit(X_train, y_train)
+    grid_search.fit(x_train, y_train)
     print("Best parameters:", grid_search.best_params_)
     model = grid_search.best_estimator_
     return model
 
-def evaluate_model(model, X_test, y_test):
-    y_pred = model.predict(X_test)
+def evaluate_model(model, x_test, y_test):
+    y_pred = model.predict(x_test)
     accuracy = accuracy_score(y_test, y_pred)
     print(f"Model accuracy: {accuracy:.2f}")
     cm = confusion_matrix(y_test, y_pred)
@@ -78,8 +78,8 @@ def visualize_tree(model, features):
     plot_tree(model, feature_names=features, class_names=['Decrease', 'Increase'], filled=True)
     plt.show()
 
-def cross_validation(model, X, y):
-    scores = cross_val_score(model, X, y, cv=5)
+def cross_validation(model, x, y):
+    scores = cross_val_score(model, x, y, cv=5)
     print("Cross-validation scores:", scores)
 
 def plot_feature_importance(model, features):
