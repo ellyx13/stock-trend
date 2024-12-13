@@ -4,6 +4,23 @@
 This project analyzes stock price trends using technical indicators and machine learning with a decision tree model. The application is built using **Streamlit** for an interactive user interface.
 
 ## Features
+
+### Core Features Used in the Project
+This project utilizes the following technical indicators and features for stock price analysis:
+
+1. **open**: The opening price of the stock for the day.
+2. **high**: The highest price of the stock during the trading session.
+3. **low**: The lowest price of the stock during the trading session.
+4. **close**: The closing price of the stock for the day.
+5. **volume**: The total volume of shares traded during the trading session.
+6. **MA_5, MA_20, MA_50**: Moving averages over 5, 20, and 50 days to identify short-term and long-term trends.
+7. **RSI (Relative Strength Index)**: Measures the strength of price movements to identify overbought or oversold conditions.
+8. **bollinger_high, bollinger_low**: Upper and lower bands of Bollinger Bands, used to measure market volatility.
+9. **MACD (Moving Average Convergence Divergence)**: A trend-following momentum indicator that shows the relationship between two moving averages.
+10. **MACD_signal**: The signal line derived from MACD to indicate buy/sell opportunities.
+
+These features are used as inputs to the Decision Tree model for predicting stock price trends.
+
 1. Select industry and stock symbol.
 2. Specify the date range for analysis.
 3. Choose data source (e.g., VCI, TCBS).
