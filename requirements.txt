@@ -1,0 +1,7 @@
+vnstock3
+cffi
+pandas 
+numpy 
+scikit-learn 
+matplotlib 
+seaborn
