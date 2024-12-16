@@ -116,6 +116,9 @@ http://localhost:8501
 - **Feature Importance**
 ![Feature Importance](images/feature_importance.png)
 
+- **Forecasted Stock in 365 days**
+![Forecasted Stock](images/forecast.png)
+
 
 ## References
 1. [Mô hình cây quyết định (decision tree)](https://phamdinhkhanh.github.io/deepai-book/ch_ml/DecisionTree.html)

@@ -80,7 +80,17 @@ if st.button("Submit"):
         st.subheader("Decision Tree Visualization", divider="gray")
         fig = vn_stock.visualize_tree()
         st.pyplot(fig)
-        
+
+        # Add download button for the chart as PDF
+        buf = io.BytesIO()
+        fig.savefig(buf, format="pdf")
+        buf.seek(0)
+        st.download_button(
+            label="Download Decision Tree as PDF",
+            data=buf,
+            file_name="decision_tree.pdf",
+            mime="application/pdf"
+        )
         # Mô tả cây quyết định
         st.markdown("### Mô tả Cây Quyết Định và Các Feature")
         st.markdown("""
